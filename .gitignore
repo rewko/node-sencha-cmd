@@ -1,7 +1,5 @@
 # project
-lib/*.js
 lib/*.js.map
-test/*.js
 test/*.js.map
 
 # WebStorm
