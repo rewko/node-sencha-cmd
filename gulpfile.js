@@ -2,7 +2,7 @@ var gulp = require('gulp'),
     typescript = require('gulp-tsc');
 
 var isWatching = false,
-	production = true;
+    production = true;
 
 gulp.task('default', ['test']);
 

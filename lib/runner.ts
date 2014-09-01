@@ -1,39 +1,8 @@
 /// <reference path="../node.d.ts" />
 
 import cp = require('child_process');
+import events = require('events');
 import path = require('path');
-
-module log {
-    enum Level {
-        debug = 0,
-        warning = 1,
-        error = 2
-    }
-
-    export function writeln(): void {
-        console.log('\n');
-    }
-
-    export function error(msg: string, ...args: any[]): void {
-        log(Level.error, msg, args);
-    }
-
-    export function debug(msg: string, ...args: any[]): void {
-        log(Level.debug, msg, args);
-    }
-
-    export function warn(msg: string, ...args: any[]): void {
-        log(Level.warning, msg, args);
-    }
-
-    function log(level: Level, msg: string, args: any[]): void {
-        if (args && args.length > 0) {
-            console.log.apply(null, [].concat(msg, args));
-        } else {
-            console.log(msg);
-        }
-    }
-}
 
 export interface factory {
     (sencha: string, cmd: 'which'): Commands.WhichCommand;
@@ -54,7 +23,7 @@ export var cmd: factory = function (sencha: string, cmd: string): any {
 
 export module Commands {
     export interface ICommand {
-        run(done: () => void): void;
+        run(done: () => void): events.EventEmitter;
     }
 
     export class Command implements ICommand {
@@ -88,12 +57,18 @@ export module Commands {
             }
         }
 
-        run(done: () => void): void {
-            var cmd = path.join(path.normalize(this.sencha), 'sencha');
+        run(): events.EventEmitter {
+            var cmd = path.join(path.normalize(this.sencha), 'sencha'),
+                emitter = new events.EventEmitter(),
+                runnerOpts = {
+                    treatWarningsAsErrors: false
+                };
 
-            Runner.runScript([cmd, this.toString()].join(' '), () => {
-                done();
-            });
+
+
+            Runner.runScript([cmd, this.toString()].join(' '), runnerOpts, emitter);
+
+            return emitter;
         }
 
         toString(): string {
@@ -196,7 +171,7 @@ module Runner {
         }
     }
 
-    export function runScript(script: string, done: (success?: boolean) => void, cwd?: string): void {
+    export function runScript(script: string, opts: { treatWarningsAsErrors: boolean }, emitter: EventEmitter, cwd?: string): void {
         var warning,
             error,
             options: Options = {};
@@ -205,7 +180,7 @@ module Runner {
             options.cwd = cwd;
         }
 
-        log.debug('Running script: ' + script);
+        emitter.emit('data', 'Running script: ' + script);
 
         var childProcess = cp.exec(script, options, () => {});
 
@@ -214,42 +189,33 @@ module Runner {
 
             if (d.match(/^\[ERR\]/)) {
                 error = error || message;
-                log.error(message);
+                emitter.emit('data', message);
             } else if (d.match(/^\[WRN\]/)) {
                 warning = warning || message;
-                log.warn(message);
+                emitter.emit('data', message);
             } else {
                 var dataLine = message.trim();
 
                 if (dataLine) {
-                    log.debug(dataLine);
+                    emitter.emit('data', dataLine);
                 }
             }
         });
 
         childProcess.stderr.on('data', (d) => {
-            log.error(removeExtras(d));
+            emitter.emit('error', removeExtras(d));
         });
 
         childProcess.on('exit', (code) => {
             if (error) {
-                log.writeln(); // write new line to gap from previous output
-                log.error(error + ' (see log for details)');
+                emitter.emit('end', error);
+            } else if (warning && opts.treatWarningsAsErrors) {
+                emitter.emit('end', warning);
+            } else if (code !== 0) {
+                emitter.emit('Exited with code: ' + code + '.');
+            } else {
+                emitter.emit('end', null);
             }
-
-            if (warning) {
-                log.writeln(); // write new line to gap from previous output
-                log.warn(warning + ' (see log for details)');
-                log.writeln(); // write new line to gap from previous output
-            }
-
-            if (code !== 0) {
-                log.error('Exited with code: %d.', code);
-
-                return done(false);
-            }
-
-            done();
         });
     }
 }

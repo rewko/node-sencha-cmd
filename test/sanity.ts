@@ -6,7 +6,7 @@ function done() {
     console.log('done ...');
 }
 
-sencha.cmd(cmd, 'which').run(done);
+sencha.cmd(cmd, 'which').run().on('end', done);
 
 var params = [
     '-cl /src,../../../../Dashboard,../../../../Prototype',
@@ -19,8 +19,6 @@ var params = [
     'and meta -file -out requires.txt -tpl {0}',
     'and concat -out /single.ext.js'
 ];
-
-debugger;
 
 var compile = sencha.cmd(cmd, 'compile')
     .option('-cl', '/src,../../../../Dashboard,../../../../Prototype')
