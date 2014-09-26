@@ -1,4 +1,7 @@
+/// <reference path="../node.d.ts" />
+
 import sencha = require('../lib/runner');
+import path = require('path');
 
 var cmd = 'd:/apps/Sencha/Cmd/5.0.0.160';
 
@@ -6,20 +9,15 @@ function done() {
     console.log('done ...');
 }
 
-sencha.cmd(cmd, 'which').run().on('end', done);
+// which
+sencha.cmd(cmd, 'which')
+    .run()
+    .on('data', (msg: string) => {
+        console.log(msg);
+    })
+    .on('end', done);
 
-var params = [
-    '-cl /src,../../../../Dashboard,../../../../Prototype',
-    '--ignore node_modules,single.ext.js',
-    'union -r -c Dashboard.view.widget.popup.MessageDialogWindow',
-    'and include -r -cl Dashboard.view.widget.popup.DataDialogWindow',
-    'and exclude -r -cl Infor.app.Application',
-    'and concat -yui -out /single.ext.min.js',
-    'and exclude -na Ext and exclude -tag core',
-    'and meta -file -out requires.txt -tpl {0}',
-    'and concat -out /single.ext.js'
-];
-
+// compile
 var compile = sencha.cmd(cmd, 'compile')
     .option('-cl', '/src,../../../../Dashboard,../../../../Prototype')
     .union('-r', '-c Dashboard.view.widget.popup.MessageDialogWindow')
@@ -28,3 +26,6 @@ var compile = sencha.cmd(cmd, 'compile')
     .concatenate('single.ext.js');
 
 console.log(compile.toString());
+
+// app build
+console.log(sencha.cmd(cmd, 'app build').toString());

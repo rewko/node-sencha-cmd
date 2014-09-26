@@ -23,7 +23,7 @@ export var cmd: factory = function (sencha: string, cmd: string): any {
 
 export module Commands {
     export interface ICommand {
-        run(done: () => void): events.EventEmitter;
+        run(cwd?: string): events.EventEmitter;
     }
 
     export class Command implements ICommand {
@@ -57,16 +57,14 @@ export module Commands {
             }
         }
 
-        run(): events.EventEmitter {
+        run(cwd?: string): events.EventEmitter {
             var cmd = path.join(path.normalize(this.sencha), 'sencha'),
                 emitter = new events.EventEmitter(),
                 runnerOpts = {
                     treatWarningsAsErrors: false
                 };
 
-
-
-            Runner.runScript([cmd, this.toString()].join(' '), runnerOpts, emitter);
+            Runner.runScript([cmd, this.toString()].join(' '), runnerOpts, emitter, cwd);
 
             return emitter;
         }

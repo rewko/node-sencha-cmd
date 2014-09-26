@@ -1,6 +1,6 @@
 {
   "name": "sencha-cmd",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Sencha Cmd wrapper/runner.",
   "main": "index.js",
   "scripts": {
@@ -10,10 +10,16 @@
     "Sencha CMD",
     "Sencha Command"
   ],
+  "readmeFilename": "README.md",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/rewko/node-sencha-cmd.git"
+  },
   "author": "rewko <info@rewko.eu>",
   "license": "MIT",
   "devDependencies": {
     "gulp": "^3.8.6",
-    "gulp-tsc": "^0.9.2"
+    "gulp-tsc": "^0.9.2",
+    "gulp-util": "^3.0.1"
   }
 }

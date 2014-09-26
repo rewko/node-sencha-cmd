@@ -1,8 +1,13 @@
 var gulp = require('gulp'),
+    gutil = require('gulp-util'),
     typescript = require('gulp-tsc');
 
 var isWatching = false,
     production = true;
+
+if (gutil.env.debug === true) {
+    production = false;
+}
 
 gulp.task('default', ['test']);
 
@@ -12,7 +17,7 @@ gulp.task('lib', function () {
             module: 'commonjs',
             sourcemap: !production,
             removeComments: production,
-            emitError: false
+            emitError: !isWatching
         }))
         .pipe(gulp.dest('./lib'));
 });
@@ -23,14 +28,13 @@ gulp.task('test', function () {
             module: 'commonjs',
             sourcemap: !production,
             removeComments: production,
-            emitError: false
+            emitError: !isWatching
         }))
         .pipe(gulp.dest('./'));
 });
 
 gulp.task('watch', ['test'], function () {
-    gulp.watch('./**/*.ts', function () {
-        isWatching = true;
-        gulp.start('test');
-    });
+    isWatching = true;
+
+    gulp.watch('./**/*.ts', ['test']);
 });
