@@ -5,3 +5,4 @@
 ## TODOs
 
   - emit output byline
+  - fix cases when Sencha CMD exits with code null
