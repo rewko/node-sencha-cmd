@@ -159,7 +159,7 @@ module Runner {
         killSignal?: string;
     }
 
-    function removeExtras(str) {
+    function removeExtras(str: string) {
         var compressOutput = true;
 
         if (compressOutput) {
@@ -169,9 +169,9 @@ module Runner {
         }
     }
 
-    export function runScript(script: string, opts: { treatWarningsAsErrors: boolean }, emitter: EventEmitter, cwd?: string): void {
-        var warning,
-            error,
+    export function runScript(script: string, opts: { treatWarningsAsErrors: boolean }, emitter: events.EventEmitter, cwd?: string): void {
+        var warning: string,
+            error: string,
             options: Options = {};
 
         if (cwd) {
@@ -182,7 +182,7 @@ module Runner {
 
         var childProcess = cp.exec(script, options, () => {});
 
-        childProcess.stdout.on('data', function (d) {
+        childProcess.stdout.on('data', function (d: string) {
             var message = removeExtras (d);
 
             if (d.match(/^\[ERR\]/)) {
@@ -200,17 +200,18 @@ module Runner {
             }
         });
 
-        childProcess.stderr.on('data', (d) => {
+        childProcess.stderr.on('data', (d: string) => {
             emitter.emit('error', removeExtras(d));
         });
 
-        childProcess.on('exit', (code) => {
+        childProcess.on('exit', (code: number) => {
             if (error) {
                 emitter.emit('end', error);
             } else if (warning && opts.treatWarningsAsErrors) {
                 emitter.emit('end', warning);
-            } else if (code !== 0) {
-                emitter.emit('Exited with code: ' + code + '.');
+            } else if (code !== 0 && code !== null) {
+                // Sencha CMD sometimes does not provide exit code when there are "only" warnings
+                emitter.emit('end', 'Exited with code: ' + code + '.');
             } else {
                 emitter.emit('end', null);
             }
