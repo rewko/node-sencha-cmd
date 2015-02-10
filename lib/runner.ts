@@ -1,8 +1,11 @@
 /// <reference path="../node.d.ts" />
+/// <reference path="../byline.d.ts" />
 
 import cp = require('child_process');
 import events = require('events');
 import path = require('path');
+import stream = require('stream');
+import byline = require('byline');
 
 export interface factory {
     (sencha: string, cmd: 'which'): Commands.WhichCommand;
@@ -172,7 +175,9 @@ module Runner {
     export function runScript(script: string, opts: { treatWarningsAsErrors: boolean }, emitter: events.EventEmitter, cwd?: string): void {
         var warning: string,
             error: string,
-            options: Options = {};
+            options: Options = {},
+            stdout: stream.Readable,
+            stderr: stream.Readable;
 
         if (cwd) {
             options.cwd = cwd;
@@ -182,7 +187,10 @@ module Runner {
 
         var childProcess = cp.exec(script, options, () => {});
 
-        childProcess.stdout.on('data', function (d: string) {
+        stdout = byline.createStream(childProcess.stdout, { keepEmptyLines: true });
+        stderr = byline.createStream(childProcess.stderr, { keepEmptyLines: true });
+
+        stdout.on('data', function (d: string) {
             var message = removeExtras (d);
 
             if (d.match(/^\[ERR\]/)) {
@@ -200,7 +208,7 @@ module Runner {
             }
         });
 
-        childProcess.stderr.on('data', (d: string) => {
+        stderr.on('data', (d: string) => {
             emitter.emit('error', removeExtras(d));
         });
 

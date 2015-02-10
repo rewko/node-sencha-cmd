@@ -4,5 +4,5 @@
 
 ## TODOs
 
-  - emit output byline
+  - <del>emit output byline</del>
   - <del>fix cases when Sencha CMD exits with code null</del>
