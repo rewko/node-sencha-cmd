@@ -1,6 +1,6 @@
 {
   "name": "sencha-cmd",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Sencha Cmd wrapper/runner.",
   "main": "index.js",
   "scripts": {
